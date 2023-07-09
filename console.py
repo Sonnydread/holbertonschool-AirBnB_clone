@@ -17,6 +17,7 @@ from models.review import Review
 class HBNBCommand(cmd.Cmd):
     """Comand interpreteiton"""
     prompt = '(hbnb)'
+    file = None
     cls = ["BaseModel", "State", "City", "User", "Place", "Amenity", "Review"]
 
     def do_create(self, arg):
@@ -130,6 +131,14 @@ class HBNBCommand(cmd.Cmd):
         """func to do"""
         pass
 
+    def separarArgs(arg):
+        """func to do"""
+        argumentos = arg.split()
+        return argumentos
+
 
 if __name__ == '__main__':
-    HBNBCommand().cmdloop()
+    try:
+        HBNBCommand().cmdloop()
+    except KeyboardInterrupt:
+        print('\nSaliendo del programa...')
