@@ -5,9 +5,17 @@
 import os.path
 import json
 from typing import List
+from models.base_model import BaseModel
+from models.user import User
+from models.place import Place
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.review import Review
 
 
 class FileStorage:
+    """FileStorage class"""
     __file_path = 'file.json'
     __objects = {}
 
@@ -17,30 +25,26 @@ class FileStorage:
 
     def new(self, obj):
         """Settings 4 FileStorage"""
-        key = "{}.{}".format(obj.__class__.__name__, obj.id)
-        self.__objects[key] = obj
+        self.__objects[f"{obj.__class__.__name__}.{obj.id}"] = obj
 
     def save(self):
         """Settings 4 FileStorage"""
-        with open(self.__file_path, 'w') as fe:
-            dict_ = {k: v.to_dict() for k, v in self.__objects.items()}
-            fe.write(json.dumps(dict_))
+        d1 = {}
+        with open(self.__file_path, 'w') as f:
+            for key, value in self.__objects.items():
+                d1[key] = value.to_dict()
+            f.write(json.dumps(d1))
 
     def reload(self):
         """Settings 4 FileStorage"""
-        from models.base_model import BaseModel
-        from models.user import User
-        from models.place import Place
-        from models.state import State
-        from models.city import City
-        from models.amenity import Amenity
-        from models.review import Review
-
-        if os.path.exists(self.__file_path):
-            with open(self.__file_path, 'r') as fe:
-                dict_ = json.loads(fe.read())
-            for k in dict_.keys():
-                value = dict_[k]
-                self.__objects[k] = eval(value['__class__'])(**value)
-        else:
+        cls = ["BaseModel", "User", "State", "City",
+               "Place", "State", "Amenity", "Review"]
+        try:
+            with open(self.__file_path, 'r') as f:
+                dictio = json.loads(f.read())
+            for key in dictio.keys():
+                value = dictio[key]
+                if value['__class__'] in cls:
+                    self.__objects[key] = eval(value['__class__'])(**value)
+        except FileNotFoundError:
             pass
