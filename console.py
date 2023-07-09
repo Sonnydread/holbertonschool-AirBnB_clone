@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 """Implementation of console 001"""
-
-
 import cmd
 import json
 from models.place import Place
@@ -16,114 +14,122 @@ from models.review import Review
 
 class HBNBCommand(cmd.Cmd):
     """Comand interpreteiton"""
+
     prompt = '(hbnb)'
-    file = None
-    cls = ["BaseModel", "State", "City", "User", "Place", "Amenity", "Review"]
+    claxx = ["BaseModel", "State", "City", "User", "Place",
+             "Amenity", "Review"]
 
     def do_create(self, arg):
         """functions to operate"""
-        if not arg:
+        args = arg.split()
+        if not args:
             print("** class name missing **")
-        elif arg in self.cls:
-            new = eval(arg)()
-            eval(arg).save(new)
-            print(new.id)
-        else:
+            return
+        class_name = args[0]
+        if class_name not in self.claxx:
             print("** class doesn't exist **")
+            return
+        instance = eval(class_name)()
+        instance.save()
+        print(instance.id)
 
     def do_all(self, arg):
         """functions to operate"""
-        if not arg:
-            all_objs = storage.all()
-            lis = []
-            for obj_id in all_objs.keys():
-                obj = all_objs[obj_id]
-                lis.append(str(obj))
-            print(lis)
-        elif arg in self.cls:
-            all_objs = storage.all()
-            lis = []
-            for obj_id in all_objs.keys():
-                obj = all_objs[obj_id]
-                if arg == obj.__class__.__name__:
-                    lis.append(str(obj))
-            if len(lis) > 0:
-                print(lis)
-            else:
-                print("** class doesn't exist **")
+        args = arg.split()
+        instances = storage.all()
+        if not args:
+            print([str(instance) for instance in instances.values()])
         else:
-            print("** class doesn't exist **")
+            class_name = args[0]
+            if class_name not in self.claxx:
+                print("** class doesn't exist **")
+                return
+            filtered_instances = [
+                    str(instance)
+                    for instance in instances.values()
+                    if instance.__class__.__name__ == class_name
+            ]
+            print(filtered_instances)
 
     def do_show(self, arg):
         """functions to operate"""
+        args = arg.split()
         if not arg:
             print("** class name missing **")
-        else:
-            args = separarArgs(arg)
-            if args[0] not in self.cls:
-                print("** class doesn't exist **")
-            elif len(args) == 1:
-                print("** instance id missing **")
-            elif args[1]:
-                all_objs = storage.all()
-                for key in all_objs.keys():
-                    o = all_objs[key]
-                    if o.id == args[1] and o.__class__.__name__ == args[0]:
-                        print(o)
-                        break
-                else:
-                    print("** no instance found **")
+            return
+        class_name = args[0]
+        if class_name not in self.claxx:
+            print("** class doesn't exist **")
+            return
+        if len(args) < 2:
+            print("** instance id missing **")
+            return
+        instances = storage.all()
+        instance_id = args[1]
+        key = "{}.{}".format(class_name, instance_id)
+        if key not in instances:
+            print("** no instance found **")
+            return
+        print(instances[key])
 
     def do_destroy(self, arg):
         """functions to operate"""
+        args = arg.split()
         if not arg:
             print("** class name missing **")
-        else:
-            args = separarArgs(arg)
-            if args[0] not in self.cls:
-                print("** class doesn't exist **")
-            elif len(args) == 1:
-                print("** instance id missing **")
-            else:
-                all_objs = storage.all()
-                for key in all_objs.keys():
-                    o = all_objs[key]
-                    if o.id == args[1] and o.__class__.__name__ == args[0]:
-                        del all_objs[key]
-                        storage.save()
-                        break
-                else:
-                    print("** no instance found **")
+            return
+        class_name = args[0]
+        if class_name not in self.claxx:
+            print("** class doesn't exist **")
+            return
+        if len(args) < 2:
+            print("** instance id missing **")
+            return
+        instances = storage.all()
+        instance_id = args[1]
+        key = "{}.{}".format(class_name, instance_id)
+        if key not in instances:
+            print("** no instance found **")
+            return
+        del instances[key]
+        storage.save()
 
     def do_update(self, arg):
         """functions to operate"""
+        args = arg.split()
         if not arg:
             print("** class name missing **")
-        else:
-            args = separarArgs(arg)
-            if args[0] not in self.cls:
-                print("** class doesn't exist **")
-            elif len(args) == 1:
-                print("** instance id missing **")
-            elif len(args) == 2:
-                print("** attribute name missing **")
-            elif len(args) == 3:
-                print("** value missing **")
-            else:
-                all_objs = storage.all()
-                for key in all_objs.keys():
-                    o = all_objs[key]
-                    if o.id == args[1] and o.__class__.__name__ == args[0]:
-                        setattr(o, args[2], args[3].strip('"'))
-                        break
-                else:
-                    print("** no instance found **")
+            return
+        class_name = args[0]
+        if class_name not in self.claxx:
+            print("** class doesn't exist **")
+            return
+        if len(args) < 2:
+            print("** instance id missing **")
+            return
+        instances = storage.all()
+        instance_id = args[1]
+        key = "{}.{}".format(class_name, instance_id)
+        if key not in instances:
+            print("** no instance found **")
+            return
+        if len(args) < 3:
+            print("** attribute name missing **")
+            return
+        if len(args) < 4:
+            print("** value missing **")
+            return
+        attribute_name = args[2]
+        attribute_value = args[3]
+        instance = instances[key]
+        setattr(instance, attribute_name, attribute_value)
+        instance.save()
 
     def do_quit(self, arg):
         """func to do"""
         return True
 
-    def do_EOF(self, line):
+    def do_EOF(self, arg):
         """func to do"""
         return True
 
@@ -131,14 +137,6 @@ class HBNBCommand(cmd.Cmd):
         """func to do"""
         pass
 
-    def separarArgs(arg):
-        """func to do"""
-        argumentos = arg.split()
-        return argumentos
-
 
 if __name__ == '__main__':
-    try:
-        HBNBCommand().cmdloop()
-    except KeyboardInterrupt:
-        print('\nSaliendo del programa...')
+    HBNBCommand().cmdloop()
